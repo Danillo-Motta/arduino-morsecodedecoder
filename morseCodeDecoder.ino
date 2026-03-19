@@ -1,3 +1,11 @@
+#include <LiquidCrystal.h>
+
+/* TODO
+After certain time add a space for a new word
+A button to clear the screen
+
+*/
+
 //Pin Variables
 const int button = 8;
 const int led = 12;
@@ -14,15 +22,19 @@ unsigned long pressStart;
 unsigned long pressEnd;
 unsigned long clickDuration;
 unsigned long lastButtonPress;
-const unsigned long clickDurationTime = 200;
+const unsigned long clickDurationTime = 150;
 
 //Decode gap variables
-const unsigned long gapDurationTime = 1500;
+const unsigned long gapDurationTime = 500;
 bool hasInput = false;
 bool decoded = false;
 
 //Decode variables
 String morseInput = "";
+String decodedWord = "";
+String currentWord = "";
+
+LiquidCrystal lcd(11, 10, 5, 4, 3, 2);
 
 String morseTable[] = {
   ".-","-...","-.-.","-..",".","..-.","--.","....",
@@ -39,6 +51,7 @@ void setup()
   pinMode(button, INPUT);
   pinMode(led, OUTPUT);
   pinMode(buzzer, OUTPUT);
+  lcd.begin(16, 2);
   Serial.begin(9600);
 }
 
@@ -46,6 +59,9 @@ void loop()
 {
   unsigned long currentTime = millis();
   int reading = digitalRead(button);
+
+  lcd.setCursor(0, 1);
+  lcd.print(currentWord);
 
   if (reading != lastButtonState) {
     lastDebounceTime = currentTime;
@@ -78,6 +94,10 @@ void loop()
           //Serial.print(". ");
           morseInput += ".";
         }
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print(morseInput);
       }
     }
   }
@@ -89,12 +109,16 @@ void loop()
 
     for (int i = 0; i < tableSize; i++) {
       if (morseTable[i] == morseInput) {
-         Serial.print(letterTable[i]);
+         decodedWord =  letterTable[i];
+         currentWord += decodedWord;
          break;
       }
     }
     hasInput = false;
     decoded = true;
     morseInput = "";
+    lcd.clear();
+    lcd.setCursor(0, 1);
+    lcd.print(currentWord);
   }
 }
