@@ -1,9 +1,7 @@
 #include <LiquidCrystal.h>
 
 /* TODO
-After certain time add a space for a new word
 A button to clear the screen
-
 */
 
 //Pin Variables
@@ -25,7 +23,7 @@ unsigned long lastButtonPress;
 const unsigned long clickDurationTime = 150;
 
 //Decode gap variables
-const unsigned long gapDurationTime = 500;
+const unsigned long gapDurationTime = 400;
 bool hasInput = false;
 bool decoded = false;
 
@@ -33,6 +31,10 @@ bool decoded = false;
 String morseInput = "";
 String decodedWord = "";
 String currentWord = "";
+
+//Wordspace
+const unsigned long spaceGapTime = 3000;
+bool isTyping = false;
 
 LiquidCrystal lcd(11, 10, 5, 4, 3, 2);
 
@@ -53,6 +55,11 @@ void setup()
   pinMode(buzzer, OUTPUT);
   lcd.begin(16, 2);
   Serial.begin(9600);
+  
+  lcd.setCursor(0, 0);
+  lcd.print("Morse Decoder");
+  lcd.setCursor(0, 1);
+  lcd.print("Press to start");
 }
 
 void loop()
@@ -75,6 +82,7 @@ void loop()
         pressStart = currentTime;
         hasInput = true;
         decoded = false;
+        isTyping = true;
 
         digitalWrite(led, HIGH);
         tone(buzzer, 700);
@@ -114,11 +122,20 @@ void loop()
          break;
       }
     }
+    //start a timer
     hasInput = false;
+    isTyping = true;
     decoded = true;
     morseInput = "";
     lcd.clear();
     lcd.setCursor(0, 1);
     lcd.print(currentWord);
+  }
+
+  if ( decoded && isTyping && currentTime - lastButtonPress > spaceGapTime ) {
+    isTyping = false;
+    currentWord += " ";
+    decoded = false;
+    Serial.print("Space added");
   }
 }
